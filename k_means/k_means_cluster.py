@@ -5,11 +5,12 @@
 """
 
 
+from math import inf
 import joblib
 import numpy
 import matplotlib.pyplot as plt
 import sys
-sys.path.append("../tools/")
+sys.path.append("./ud120projects/tools/")
 from feature_format import featureFormat, targetFeatureSplit
 
 
@@ -37,15 +38,42 @@ def Draw(pred, features, poi, mark_poi=False, name="image.png", f1_name="feature
 
 
 ### load in the dict of dicts containing all the data on each person in the dataset
-data_dict = joblib.load( open("../final_project/final_project_dataset.pkl", "rb") )
+data_dict = joblib.load( open("./ud120projects/final_project/final_project_dataset.pkl", "rb") )
 ### there's an outlier--remove it! 
 data_dict.pop("TOTAL", 0)
+
+max_salary = float(-inf)
+min_salary = float(inf)
+for k in data_dict.keys():
+    if float(data_dict[k]["salary"]) < min_salary:
+        min_salary = data_dict[k]["salary"]
+    if float(data_dict[k]["salary"]) > max_salary:
+        max_salary = data_dict[k]["salary"]
+print(max_salary)
+print(min_salary)  
+
+print("Rescaled value of 200,000:", ((200000-min_salary)/(max_salary-min_salary)))
+
+max_stock = float(-inf)
+min_stock = float(inf)
+for k in data_dict.keys():
+    if float(data_dict[k]["exercised_stock_options"]) < min_stock:
+        min_stock = data_dict[k]["exercised_stock_options"]
+    if float(data_dict[k]["exercised_stock_options"]) > max_stock:
+        max_stock = data_dict[k]["exercised_stock_options"]
+print(max_stock)
+print(min_stock)
+
+print("Rescaled value of 1,000,000:", ((1000000-min_stock)/(max_stock-min_stock)))
+
+
 
 
 ### the input features we want to use 
 ### can be any key in the person-level dictionary (salary, director_fees, etc.) 
 feature_1 = "salary"
 feature_2 = "exercised_stock_options"
+feature_3 = "total_payments"
 poi  = "poi"
 features_list = [poi, feature_1, feature_2]
 data = featureFormat(data_dict, features_list )
@@ -62,7 +90,10 @@ plt.show()
 
 ### cluster here; create predictions of the cluster labels
 ### for the data and store them to a list called pred
-
+from sklearn import cluster
+cls = cluster.KMeans(n_clusters=2)
+cls.fit(finance_features, poi)
+pred = cls.predict(finance_features)
 
 
 
